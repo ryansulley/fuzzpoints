@@ -9,19 +9,19 @@ class fuzzpoint (gdb.Breakpoint):
     super(fuzzpoint,self).__init__(trigger)
 
   def stop(self):
-    buf_loc = gdb.parse_and_eval(self.target)
     buf_size = gdb.parse_and_eval(self.size)
     
     mod_count = int(math.floor(buf_size * 8 * gdb.parse_and_eval(self.factor)))
     if mod_count < 1: mod_count = 1
-
-    buf = gdb.selected_inferior().read_memory(buf_loc, buf_size)
-    for i in range(0,mod_count):
-      rand_byte = random.randint(0,buf_size-1)
-      orig = struct.unpack('B', buf[rand_byte])[0]
+   
+    for i in range(0, mod_count):
+      offset = random.randint(0,buf_size-1)
+      rand_byte = gdb.parse_and_eval('%s + %d' % (self.target, offset))
+      buf = gdb.selected_inferior().read_memory(rand_byte, 1)
+      orig = struct.unpack('B', buf[0])[0]
       rand_bit = random.randint(0,7)
       update = (orig ^ (1 << rand_bit))
-      gdb.selected_inferior().write_memory(buf_loc, chr(update), 1)
+      gdb.selected_inferior().write_memory(rand_byte, chr(update), 1)
     return False
     
     
@@ -38,12 +38,8 @@ class fuzz (gdb.Command):
       print("Error: requires arguments [trigger] [target] [size] [factor] [seed]")
       return
 
-    trigger = argv[0]
-    target   = argv[1]
-    size     = argv[2] 
-    factor   = argv[3]
     seed     = gdb.parse_and_eval(argv[4])
     random.seed(seed) 
-    fuzzpoint(trigger, target, size, factor)
+    fuzzpoint(argv[0], argv[1], argv[2], argv[3])
 
 fuzz()
