@@ -1,15 +1,17 @@
 # fuzzpoints
 
-###Description
+### Description
 Fuzzpoints extend upon gdb's breakpoint functionality to provide security researchers another way to randomly modify memory in search of vulnerabilities. A new command, called fuzz, is added to gdb which allows researchers to set a trigger and target location to guide memory modification. The fuzz command takes five parameters: trigger address, target address, target size, fuzz factor, and seed.
 
-###Install Instructions
+### TODO: Options with example usage
+
+### Install Instructions
 Including the following line in your .gdbinit file
-```
+```bash
 source ~/fuzzpoints/fuzzpoints.py
 ```
 
-###Example
+### Example
 Lets walk through a trivial example to demonstrate usage. First lets take a very simple application to target.
 ```C
 #include <stdio.h>
@@ -17,7 +19,7 @@ Lets walk through a trivial example to demonstrate usage. First lets take a very
 int main(int argc, char* argv[])
 {
    char INPUT[] = "i will not forget to check the bounds of user input";
-   const unsigned int loops = 10; 
+   const unsigned int loops = 10;
    unsigned int i = 0;
    for(;i<loops; ++i)
    {   
@@ -26,7 +28,7 @@ int main(int argc, char* argv[])
    return 0;
 }
 ```
-The above code is very simple. It has a variable called INPUT which gets printed to standard out 100 times. No where in the programs original code does INPUT get modified. If we were to run this the output would resemble this:
+The above code is very simple. It has a variable called ```INPUT``` which gets printed to standard out 10 times. Nowhere in the program's original code does ```INPUT``` get modified. If we were to run this the output would resemble this:
 ```
 i will not forget to check the bounds of user input
 i will not forget to check the bounds of user input
@@ -98,10 +100,10 @@ Dump of assembler code for function main:
    0x0000000100000f0c <+156>:   retq   
    0x0000000100000f0d <+157>:   callq  0x100000f12
 End of assembler dump.
-(gdb) 
+(gdb)
 
 ```
-We can see the printf call is happening at location main+105. This would be a great place to put our fuzzpoint's trigger address. Now we to determine what to set our target address. We can do this a number of ways. For binaries with debug symbols present, we can utilize gdb and use the variable name from source code, in this case it's INPUT. However if these symbols aren't present, you can supply an address instead. To determine the size of our buffer, we can again utilize gdb's support for the sizeof function. In this example we only want to flip 1% of the bits in our buffer. The seed is provided in order to reproduce the results. Below is how we place a fuzzpoint down.
+We can see the ```printf``` call is happening at location main+105. This would be a great place to put our fuzzpoint's trigger address. Now we need to determine what to set for our target address. We can do this a number of ways. For binaries with debug symbols present, we can utilize gdb and use the variable name from source code; in this case it's ```INPUT```. If these symbols aren't present, however, you can supply an address instead. To determine the size of our buffer, we can again utilize gdb's support for the sizeof function. In this example we only want to flip 1% of the bits in our buffer. The seed is provided in order to reproduce the results. The example command that we want to run for our scenario is shown below.
 ```
 (gdb) fuzz *main+105 INPUT sizeof(INPUT) 0.01 500
 Breakpoint 1 at 0x100000f52: file test.c, line 10.
@@ -109,7 +111,7 @@ Breakpoint 1 at 0x100000f52: file test.c, line 10.
 Now we just run the program to get the following output:
 ```
 (gdb) run
-Starting program: /Users/ryansullivan/a.out 
+Starting program: /Users/ryansullivan/a.out
 I will noforget to checj the bounds of user inpuv
 I will nmforget to checj thm bounds of e3er inpuv
 A will nmforget to checj thm bound3`of e3er ijpuv
@@ -122,5 +124,4 @@ B will nm? Fobcet0po
 B will nm? FObcet0po
 [Inferior 1 (process 10108) exited normally]
 ```
-Notice how the program on each iteration is modifying the value stored at INPUT.
-
+Notice how the program on each iteration is modifying the value stored at ```INPUT```.
