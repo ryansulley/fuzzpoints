@@ -13,7 +13,9 @@ Usage: fuzz \[trigger address\] \[target address\] \[target size\] \[fuzz factor
 - seed            = any numerical value (will be processed by ```gdb.parse_and_eval()```)
 
 Examples:
+
 ```fuzz *0x1337 *0xbaddecaf 256 0.5 800```
+
 ```fuzz *main+20 SOMEVAR sizeof(SOMEVAR) 0.0001 0```
 
 ### Install Instructions
