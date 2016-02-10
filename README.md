@@ -3,7 +3,18 @@
 ### Description
 Fuzzpoints extend upon gdb's breakpoint functionality to provide security researchers another way to randomly modify memory in search of vulnerabilities. A new command, called fuzz, is added to gdb which allows researchers to set a trigger and target location to guide memory modification. The fuzz command takes five parameters: trigger address, target address, target size, fuzz factor, and seed.
 
-### TODO: Options with example usage
+### Fuzz Command Options/Usage
+Usage: fuzz \[trigger address\] \[target address\] \[target size\] \[fuzz factor\] \[seed\]
+
+- trigger address = any address or symbol similar to the ```b``` command in gdb 
+- target address  = any address or symbol similar to the ```b``` command in gdb
+- target size     = any numerical value or expression such as ```sizeof``` in terms of bytes
+- fuzz factor     = a floating point value ranging from 0 to 1
+- seed            = any numerical value (will be processed by ```gdb.parse_and_eval()```)
+
+Examples:
+```fuzz *0x1337 *0xbaddecaf 256 0.5 800```
+```fuzz *main+20 SOMEVAR sizeof(SOMEVAR) 0.0001 0```
 
 ### Install Instructions
 Including the following line in your .gdbinit file
